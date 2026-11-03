@@ -49,3 +49,4 @@ class BaseProvider(ABC):
         Returns final structured ProviderResponse.
         """
         pass
+

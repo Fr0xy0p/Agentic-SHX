@@ -137,3 +137,4 @@ class ListFilesTool(BaseTool):
             return ToolResult(success=True, output="\n".join(results))
         except Exception as e:
             return ToolResult(success=False, output="", error=f"Failed to list files: {str(e)}")
+

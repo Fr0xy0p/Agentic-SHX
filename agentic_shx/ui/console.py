@@ -52,3 +52,4 @@ def print_welcome_banner(model_name: str, cwd: str, git_status: str, safe_mode: 
     )
     console.print(panel)
     console.print()
+

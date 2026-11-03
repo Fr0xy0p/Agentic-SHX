@@ -69,3 +69,4 @@ class PermissionManager:
                 self.session_allowed_prefixes.add(prefix)
         else:
             self.session_allowed_tools.add(tool_name)
+

@@ -11,19 +11,34 @@ class OpenAIProvider(BaseProvider):
 
     def __init__(self, model: str, api_key: Optional[str] = None, base_url: Optional[str] = None):
         is_ollama = "ollama" in model.lower()
-        clean_model = model.replace("openai/", "").replace("ollama/", "").replace("openrouter/", "")
+        is_groq = "groq" in model.lower()
+        clean_model = model.replace("openai/", "").replace("ollama/", "").replace("openrouter/", "").replace("groq/", "")
         
         default_base_url = "http://localhost:11434/v1" if is_ollama else "https://api.openai.com/v1"
         if "openrouter" in model.lower():
             default_base_url = "https://openrouter.ai/api/v1"
+        elif is_groq:
+            default_base_url = "https://api.groq.com/openai/v1"
 
-        actual_base = base_url or os.getenv("OPENAI_BASE_URL") or default_base_url
-        actual_key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY") or ("ollama" if is_ollama else None)
+        actual_base = (
+            base_url
+            or (os.getenv("GROQ_BASE_URL") if is_groq else None)
+            or os.getenv("OPENAI_BASE_URL")
+            or default_base_url
+        )
+        actual_key = (
+            api_key
+            or (os.getenv("GROQ_API_KEY") if is_groq else None)
+            or os.getenv("OPENAI_API_KEY")
+            or os.getenv("OPENROUTER_API_KEY")
+            or ("ollama" if is_ollama else None)
+        )
 
         super().__init__(model=clean_model, api_key=actual_key, base_url=actual_base)
         if not self.api_key and not is_ollama:
+            needed_key = "GROQ_API_KEY" if is_groq else "OPENAI_API_KEY or OPENROUTER_API_KEY"
             raise ValueError(
-                f"API key not found for {model}. Please set OPENAI_API_KEY or OPENROUTER_API_KEY."
+                f"API key not found for {model}. Please set {needed_key}."
             )
 
     def generate(
@@ -157,3 +172,4 @@ class OpenAIProvider(BaseProvider):
             prompt_tokens=p_tokens,
             completion_tokens=c_tokens
         )
+

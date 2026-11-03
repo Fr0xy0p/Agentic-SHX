@@ -202,3 +202,4 @@ class EditFileTool(BaseTool):
             )
         except Exception as e:
             return ToolResult(success=False, output="", error=f"Failed to edit file: {str(e)}")
+

@@ -56,3 +56,4 @@ class ToolRegistry:
         registry.register(GitDiffTool(cwd=cwd))
         registry.register(GitStatusTool(cwd=cwd))
         return registry
+

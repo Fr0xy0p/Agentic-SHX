@@ -100,3 +100,4 @@ class BashTool(BaseTool):
                 output="",
                 error=f"Execution error: {str(e)}"
             )
+

@@ -3,6 +3,7 @@ from agentic_shx.providers.factory import get_provider
 from agentic_shx.providers.gemini_provider import GeminiProvider
 from agentic_shx.providers.claude_provider import ClaudeProvider
 from agentic_shx.providers.openai_provider import OpenAIProvider
+from agentic_shx.providers.groq_provider import GroqProvider
 
 __all__ = [
     "BaseProvider",
@@ -11,5 +12,7 @@ __all__ = [
     "get_provider",
     "GeminiProvider",
     "ClaudeProvider",
-    "OpenAIProvider"
+    "OpenAIProvider",
+    "GroqProvider"
 ]
+

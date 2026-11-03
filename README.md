@@ -10,6 +10,7 @@
 - **Multi-Provider LLM Abstraction**:
   - **Google Gemini**: Native streaming and tool-calling for `gemini-2.5-flash`, `gemini-2.5-pro`, and `gemini-2.0-flash`.
   - **Anthropic Claude**: Full support for `claude-3-7-sonnet`, `claude-3-5-sonnet`, and `haiku`.
+  - **Groq**: Ultra-fast inference with `groq/llama-3.3-70b-versatile`, `groq/llama-3.1-8b-instant`, and `groq/deepseek-r1-distill-llama-70b`.
   - **OpenAI & Compatible**: Supports `gpt-4o`, `o3-mini`, `openrouter/*`, and local models via `ollama/*` (`ollama/qwen2.5-coder:7b`).
 - **Interactive Terminal UI (TUI)**:
   - Rich streaming Markdown and thought/reasoning token display.
@@ -45,6 +46,7 @@ Agentic-SHX/
 │   │   ├── factory.py          # Model resolution & provider instantiator
 │   │   ├── gemini_provider.py  # Google Gemini streaming tool-calling API
 │   │   ├── claude_provider.py  # Anthropic Claude streaming messages API
+│   │   ├── groq_provider.py    # Groq ultra-fast Llama & DeepSeek inference
 │   │   └── openai_provider.py  # OpenAI, OpenRouter, and Ollama API
 │   ├── tools/
 │   │   ├── base.py             # ToolResult & BaseTool interfaces
@@ -92,6 +94,9 @@ export GEMINI_API_KEY="your-gemini-api-key"
 # Anthropic Claude
 export ANTHROPIC_API_KEY="your-anthropic-api-key"
 
+# Groq (Llama 3.3, DeepSeek R1, Mixtral)
+export GROQ_API_KEY="your-groq-api-key"
+
 # OpenAI / OpenRouter
 export OPENAI_API_KEY="your-openai-api-key"
 ```
@@ -113,6 +118,9 @@ Or specify a model directly:
 ```bash
 # Use Claude 3.7 Sonnet
 shx -m claude-3-7-sonnet
+
+# Use Groq Llama 3.3 70B
+shx -m groq/llama-3.3-70b-versatile
 
 # Use Google Gemini 2.5 Pro
 shx -m gemini/gemini-2.5-pro
@@ -172,3 +180,4 @@ pytest -v
 ## 📄 License
 
 MIT License.
+

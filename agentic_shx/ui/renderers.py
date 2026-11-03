@@ -66,3 +66,4 @@ def render_tool_result(tool_call: ToolCall, output: str, success: bool) -> None:
     )
     console.print(panel)
     console.print()
+

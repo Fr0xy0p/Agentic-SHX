@@ -159,3 +159,4 @@ def start_repl(loop: AgentLoop, settings: Settings) -> None:
             break
         except Exception as e:
             console.print(f"\n[bold red]Error:[/bold red] {str(e)}\n")
+

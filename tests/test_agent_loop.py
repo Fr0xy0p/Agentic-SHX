@@ -64,3 +64,4 @@ def test_agent_loop_execution(tmp_path):
     created_file = tmp_path / "hello.txt"
     assert created_file.exists()
     assert created_file.read_text() == "Hello Autonomous Agent!"
+

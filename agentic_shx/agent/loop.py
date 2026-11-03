@@ -117,3 +117,4 @@ class AgentLoop:
                 return "Autonomous execution aborted by user."
 
         return "Reached maximum autonomous step limit without completion."
+

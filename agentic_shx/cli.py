@@ -82,7 +82,7 @@ def main() -> None:
         )
     except Exception as e:
         console.print(f"[bold red]Configuration Error:[/bold red] {e}")
-        console.print("[dim]Set your API key via environment variable (e.g. GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY).[/dim]")
+        console.print("[dim]Set your API key via environment variable (e.g. GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, GROQ_API_KEY).[/dim]")
         sys.exit(1)
 
     # Initialize Tools and Safety
@@ -132,3 +132,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

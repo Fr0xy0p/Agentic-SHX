@@ -65,3 +65,4 @@ def build_system_prompt(cwd: Optional[Path] = None) -> str:
         git_status=get_git_summary(target_cwd),
         custom_rules=get_custom_project_rules(target_cwd)
     )
+

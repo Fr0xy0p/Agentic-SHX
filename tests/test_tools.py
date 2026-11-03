@@ -99,3 +99,4 @@ def test_tool_registry():
         assert "read_file" in tool_names
         assert "write_file" in tool_names
         assert "edit_file" in tool_names
+

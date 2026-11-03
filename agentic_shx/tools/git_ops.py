@@ -71,3 +71,4 @@ class GitStatusTool(BaseTool):
             return ToolResult(success=True, output=output or "(Clean working tree)")
         except Exception as e:
             return ToolResult(success=False, output="", error=f"Git status error: {str(e)}")
+

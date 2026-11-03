@@ -58,3 +58,4 @@ def test_permission_manager_session_allow():
     # Now it should be allowed automatically
     needs_ask, risk, _ = pm.should_ask_permission("bash", {"command": "npm test -- --watch"})
     assert needs_ask is False
+
