@@ -83,3 +83,4 @@ class SkillManager:
 
     def list_skills(self) -> List[Skill]:
         return list(self.skills.values())
+

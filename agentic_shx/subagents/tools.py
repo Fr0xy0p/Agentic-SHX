@@ -79,3 +79,4 @@ class DefineSubagentTool(BaseTool):
     def execute(self, name: str, description: str, system_prompt: str, enable_write_tools: bool = False, **kwargs) -> ToolResult:
         res = self.manager.define_type(name, description, system_prompt, enable_write_tools)
         return ToolResult(success=True, output=res)
+

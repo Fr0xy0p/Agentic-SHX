@@ -26,3 +26,4 @@ def test_skill_discovery_and_reading(tmp_path):
     res = tool.execute(skill_name="my-skill")
     assert res.success is True
     assert "Detailed skill instructions here." in res.output
+

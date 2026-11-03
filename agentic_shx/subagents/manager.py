@@ -117,3 +117,4 @@ class SubagentManager:
         except Exception as e:
             self.active_subagents[sub_id]["status"] = "FAILED"
             return f"[Subagent '{role}' Failed]: {str(e)}"
+

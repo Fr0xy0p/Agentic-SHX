@@ -25,3 +25,4 @@ def test_session_manager_creation_and_logging(tmp_path):
     assert len(all_sessions) == 1
     assert all_sessions[0]["id"] == "test-session-1"
     assert "Hello agent" in all_sessions[0]["title"]
+

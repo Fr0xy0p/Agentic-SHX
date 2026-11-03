@@ -18,3 +18,4 @@ When performing a code review:
    - Strengths
    - Critical Issues / Bugs
    - Minor Suggestions & Code Quality
+

@@ -32,6 +32,17 @@ from agentic_shx.ui.approval import request_tool_approval
 from agentic_shx.ui.repl import start_repl
 
 def main() -> None:
+    # Handle 'shx init <shell>' for shell integration (e.g. in ~/.zshrc or ~/.bashrc)
+    if len(sys.argv) >= 2 and sys.argv[1] == "init":
+        shell = sys.argv[2] if len(sys.argv) > 2 else "zsh"
+        local_bin = Path.home() / ".local" / "bin"
+        if shell in ("zsh", "bash"):
+            print(f"""# Agentic-SHX Shell Integration for {shell}
+export PATH="{local_bin}:$PATH"
+alias shx="command shx"
+""")
+        sys.exit(0)
+
     parser = argparse.ArgumentParser(
         prog="shx",
         description="Agentic-SHX: Autonomous Terminal Coding Agent"

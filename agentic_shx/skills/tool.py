@@ -34,3 +34,4 @@ class ReadSkillTool(BaseTool):
             )
         header = f"=== Skill: {skill.name} ===\nDescription: {skill.description}\nPath: {skill.path}\n\n"
         return ToolResult(success=True, output=header + skill.instructions)
+

@@ -33,3 +33,4 @@ def test_task_manager_sync_and_async(tmp_path):
     kill_res = tool.execute(action="kill", task_id=task_bg.task_id)
     assert kill_res.success is True
     assert "Successfully killed" in kill_res.output
+

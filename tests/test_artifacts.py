@@ -28,3 +28,4 @@ def test_artifacts_lifecycle(tmp_path):
     all_arts = mgr.list_artifacts()
     assert len(all_arts) == 1
     assert all_arts[0].filename == "plan.md"
+

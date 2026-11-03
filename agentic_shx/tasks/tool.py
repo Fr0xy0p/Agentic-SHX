@@ -53,3 +53,4 @@ class ManageTaskTool(BaseTool):
             return ToolResult(success=True, output=self.task_manager.kill(task_id))
         else:
             return ToolResult(success=False, output="", error=f"Unknown action '{action}'. Valid: list, status, send_input, kill.")
+

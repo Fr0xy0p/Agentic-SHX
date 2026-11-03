@@ -66,3 +66,4 @@ class CreateArtifactTool(BaseTool):
             )
         except Exception as e:
             return ToolResult(success=False, output="", error=f"Failed to create artifact: {str(e)}")
+

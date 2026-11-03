@@ -38,3 +38,4 @@ def test_subagent_invocation(tmp_path):
     assert res.success is True
     assert "Research completed" in res.output
     assert "Architecture Inspector" in res.output
+
