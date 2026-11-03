@@ -1,18 +1,18 @@
-"""Bash / shell execution tool."""
+"""Bash and shell execution tool with background task support."""
 
 import subprocess
 import os
 from typing import Dict, Any, Optional
 from agentic_shx.tools.base import BaseTool, ToolResult
+from agentic_shx.tasks.manager import TaskManager
 
 class BashTool(BaseTool):
-    """Executes shell commands with timeout and output capture."""
+    """Executes shell commands with timeout, background execution, and output capture."""
 
     name = "bash"
     description = (
-        "Run a shell command in the terminal. Use this to run tests, git commands, "
-        "builds, install packages, and inspect system state. The command executes "
-        "in the project root directory unless changed."
+        "Run a shell command in the terminal. Supports synchronous execution as well as "
+        "backgrounding long-running tasks and servers via wait_ms or is_daemon."
     )
     parameters = {
         "type": "object",
@@ -23,22 +23,78 @@ class BashTool(BaseTool):
             },
             "timeout": {
                 "type": "integer",
-                "description": "Optional timeout in seconds. Defaults to 120."
+                "description": "Optional timeout in seconds for synchronous execution. Defaults to 120."
+            },
+            "wait_ms": {
+                "type": "integer",
+                "description": "Milliseconds to wait before backgrounding the command (e.g. 5000). If it exceeds this, it continues running as a background task."
+            },
+            "is_daemon": {
+                "type": "boolean",
+                "description": "Set to true for long-running servers/watchers that should immediately run in the background."
             }
         },
         "required": ["command"]
     }
 
-    def __init__(self, cwd: Optional[str] = None, max_output_chars: int = 8000, default_timeout: int = 120):
+    def __init__(
+        self,
+        cwd: Optional[str] = None,
+        max_output_chars: int = 8000,
+        default_timeout: int = 120,
+        task_manager: Optional[TaskManager] = None
+    ):
         self.cwd = cwd or os.getcwd()
         self.max_output_chars = max_output_chars
         self.default_timeout = default_timeout
+        self.task_manager = task_manager
 
-    def execute(self, command: str, timeout: Optional[int] = None, **kwargs) -> ToolResult:
+    def execute(
+        self,
+        command: Optional[str] = None,
+        CommandLine: Optional[str] = None,
+        timeout: Optional[int] = None,
+        wait_ms: Optional[int] = None,
+        WaitMsBeforeAsync: Optional[int] = None,
+        is_daemon: bool = False,
+        IsDaemon: bool = False,
+        **kwargs
+    ) -> ToolResult:
+        cmd = command or CommandLine
+        if not cmd:
+            return ToolResult(success=False, output="", error="No command provided.")
+
+        actual_wait_ms = wait_ms or WaitMsBeforeAsync
+        actual_is_daemon = is_daemon or IsDaemon
+
+        # If TaskManager is available and either backgrounding parameter is requested
+        if self.task_manager and (actual_is_daemon or actual_wait_ms is not None):
+            ms = actual_wait_ms if actual_wait_ms is not None else 5000
+            completed_sync, output_text, task = self.task_manager.launch(
+                command=cmd,
+                cwd=self.cwd,
+                is_daemon=actual_is_daemon,
+                wait_ms=ms
+            )
+            if not completed_sync:
+                # Backgrounded
+                return ToolResult(
+                    success=True,
+                    output=output_text,
+                    metadata={"task_id": task.task_id if task else None, "background": True}
+                )
+            else:
+                return ToolResult(
+                    success=task.returncode == 0 if task else True,
+                    output=output_text or "(Command finished with code 0 and no output)",
+                    metadata={"exit_code": task.returncode if task else 0}
+                )
+
+        # Standard synchronous execution
         actual_timeout = timeout or self.default_timeout
         try:
             process = subprocess.run(
-                command,
+                cmd,
                 shell=True,
                 cwd=self.cwd,
                 capture_output=True,
@@ -46,7 +102,7 @@ class BashTool(BaseTool):
                 timeout=actual_timeout,
                 executable="/bin/bash" if os.path.exists("/bin/bash") else None
             )
-            
+
             stdout = process.stdout
             stderr = process.stderr
             exit_code = process.returncode
@@ -59,7 +115,6 @@ class BashTool(BaseTool):
                     combined += "\n--- STDERR ---\n"
                 combined += stderr
 
-            # Truncate if output exceeds threshold
             truncated = False
             total_chars = len(combined)
             if total_chars > self.max_output_chars:
@@ -73,7 +128,7 @@ class BashTool(BaseTool):
 
             metadata = {
                 "exit_code": exit_code,
-                "command": command,
+                "command": cmd,
                 "truncated": truncated
             }
 
@@ -100,4 +155,3 @@ class BashTool(BaseTool):
                 output="",
                 error=f"Execution error: {str(e)}"
             )
-

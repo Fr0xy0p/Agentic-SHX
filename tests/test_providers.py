@@ -52,3 +52,4 @@ def test_other_providers_resolution(monkeypatch):
     # OpenAI / Ollama
     p_ollama = get_provider("ollama/qwen2.5-coder")
     assert isinstance(p_ollama, OpenAIProvider)
+

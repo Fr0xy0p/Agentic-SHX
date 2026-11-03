@@ -44,10 +44,19 @@ class ToolRegistry:
             )
 
     @classmethod
-    def create_default(cls, cwd: Optional[str] = None) -> "ToolRegistry":
+    def create_default(
+        cls,
+        cwd: Optional[str] = None,
+        task_manager: Optional[Any] = None,
+        artifact_manager: Optional[Any] = None,
+        subagent_manager: Optional[Any] = None,
+        skill_manager: Optional[Any] = None
+    ) -> "ToolRegistry":
         """Instantiate and register all built-in tools for a workspace."""
         registry = cls()
-        registry.register(BashTool(cwd=cwd))
+        
+        # Core Shell and File Tools
+        registry.register(BashTool(cwd=cwd, task_manager=task_manager))
         registry.register(ReadFileTool(cwd=cwd))
         registry.register(WriteFileTool(cwd=cwd))
         registry.register(EditFileTool(cwd=cwd))
@@ -55,5 +64,26 @@ class ToolRegistry:
         registry.register(ListFilesTool(cwd=cwd))
         registry.register(GitDiffTool(cwd=cwd))
         registry.register(GitStatusTool(cwd=cwd))
-        return registry
 
+        # Background Task Management Tool
+        if task_manager:
+            from agentic_shx.tasks.tool import ManageTaskTool
+            registry.register(ManageTaskTool(task_manager=task_manager))
+
+        # Artifacts Tool
+        if artifact_manager:
+            from agentic_shx.artifacts.tool import CreateArtifactTool
+            registry.register(CreateArtifactTool(manager=artifact_manager))
+
+        # Subagents Tools
+        if subagent_manager:
+            from agentic_shx.subagents.tools import InvokeSubagentTool, DefineSubagentTool
+            registry.register(InvokeSubagentTool(manager=subagent_manager))
+            registry.register(DefineSubagentTool(manager=subagent_manager))
+
+        # Skills Tool
+        if skill_manager:
+            from agentic_shx.skills.tool import ReadSkillTool
+            registry.register(ReadSkillTool(manager=skill_manager))
+
+        return registry

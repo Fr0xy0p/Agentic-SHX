@@ -49,9 +49,18 @@ class PermissionManager:
             path = arguments.get("path", "")
             return False, RiskLevel.MODERATE, f"Modifying file: {path}"
 
-        elif tool_name in ("read_file", "search_files", "list_files", "git_status", "git_diff"):
+        elif tool_name in ("read_file", "search_files", "list_files", "git_status", "git_diff", "read_skill"):
             # Safe read-only inspection tools
             return False, RiskLevel.SAFE, "Read-only inspection tool"
+
+        elif tool_name == "manage_task":
+            action = arguments.get("action", "")
+            if action in ("list", "status"):
+                return False, RiskLevel.SAFE, "Task inspection"
+            return False, RiskLevel.MODERATE, f"Task management action: {action}"
+
+        elif tool_name in ("create_artifact", "invoke_subagent", "define_subagent"):
+            return False, RiskLevel.SAFE, f"Agent orchestration: {tool_name}"
 
         # Default fallback
         return True, RiskLevel.MODERATE, f"Tool execution: {tool_name}"
