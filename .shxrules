@@ -1,0 +1,5 @@
+# Project-specific rules for Agentic-SHX
+
+- Always run tests with `pytest` after modifying code.
+- Prefer explicit type hints on all function signatures.
+- Keep terminal responses concise and focused on code diffs and test results.
