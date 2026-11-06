@@ -18,3 +18,11 @@ def test_cli_init_bash():
     res = subprocess.run([sys.executable, "-m", "agentic_shx.cli", "init", "bash"], capture_output=True, text=True)
     assert res.returncode == 0
     assert "Agentic-SHX Shell Integration for bash" in res.stdout
+
+
+def test_cli_positional_help():
+    res = subprocess.run([sys.executable, "-m", "agentic_shx.cli", "--help"], capture_output=True, text=True)
+    assert res.returncode == 0
+    assert "prompt_args" in res.stdout
+
+

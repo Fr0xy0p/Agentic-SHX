@@ -48,6 +48,11 @@ alias shx="command shx"
         description="Agentic-SHX: Autonomous Terminal Coding Agent"
     )
     parser.add_argument(
+        "prompt_args",
+        nargs="*",
+        help="Direct natural language instruction to execute (e.g. shx 'show me the logbook')."
+    )
+    parser.add_argument(
         "-p", "--prompt",
         type=str,
         help="Non-interactive mode: run a single prompt and exit."
@@ -188,9 +193,10 @@ alias shx="command shx"
         on_request_approval=request_tool_approval,
     )
 
-    # Non-interactive mode
-    if args.prompt:
-        res = loop.step(args.prompt)
+    # Non-interactive / direct execution mode
+    target_prompt = args.prompt or (" ".join(args.prompt_args).strip() if args.prompt_args else None)
+    if target_prompt:
+        res = loop.step(target_prompt)
         console.print()
         sys.exit(0)
 
