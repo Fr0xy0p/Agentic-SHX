@@ -1,7 +1,9 @@
 """CLI Entrypoint for Agentic-SHX."""
 
 import sys
+import os
 import argparse
+import platform
 from pathlib import Path
 from typing import Optional
 
@@ -18,6 +20,14 @@ from agentic_shx.tasks.manager import TaskManager
 from agentic_shx.artifacts.manager import ArtifactManager
 from agentic_shx.skills.manager import SkillManager
 from agentic_shx.subagents.manager import SubagentManager
+from agentic_shx.shell_integration import (
+    get_shell_init_script,
+    install_shell_integration,
+    is_shell_state_command,
+    handoff_command_to_shell,
+    copy_to_clipboard
+)
+from agentic_shx.explainer import explain_local_command
 from agentic_shx.ui.console import console, print_welcome_banner
 from agentic_shx.ui.renderers import (
     render_markdown,
@@ -30,27 +40,107 @@ from agentic_shx.ui.renderers import (
 )
 from agentic_shx.ui.approval import request_tool_approval
 from agentic_shx.ui.repl import start_repl
+from rich.table import Table
 
-def main() -> None:
-    # Handle 'agn init <shell>' for shell integration (e.g. in ~/.zshrc or ~/.bashrc)
-    if len(sys.argv) >= 2 and sys.argv[1] == "init":
-        shell = sys.argv[2] if len(sys.argv) > 2 else "zsh"
-        local_bin = Path.home() / ".local" / "bin"
-        if shell in ("zsh", "bash"):
-            print(f"""# Agentic-SHX Shell Integration for {shell}
-export PATH="{local_bin}:$PATH"
-alias agn="command agn"
-""")
+def _handle_subcommands():
+    """Handle standalone subcommands like init, setup, explain, and info."""
+    if len(sys.argv) < 2:
+        return
+
+    subcmd = sys.argv[1].lower()
+
+    if subcmd == "setup":
+        shell_env = os.environ.get("SHELL", "")
+        shell = Path(shell_env).name if shell_env else ("zsh" if platform.system() == "Darwin" else "bash")
+        success, msg = install_shell_integration(shell)
+        if success:
+            console.print(f"[bold green]✔ {msg}[/bold green]")
+            sys.exit(0)
+        else:
+            console.print(f"[bold red]Error: {msg}[/bold red]")
+            sys.exit(1)
+
+    elif subcmd == "init":
+        args_rest = sys.argv[2:]
+        install_mode = "--install" in args_rest or "-i" in args_rest
+        shell = "zsh"
+        for a in args_rest:
+            clean_a = a.strip().lower()
+            if clean_a in ("zsh", "bash", "fish"):
+                shell = clean_a
+                break
+        if install_mode:
+            success, msg = install_shell_integration(shell)
+            if success:
+                console.print(f"[bold green]✔ {msg}[/bold green]")
+                sys.exit(0)
+            else:
+                console.print(f"[bold red]Error: {msg}[/bold red]")
+                sys.exit(1)
+        print(get_shell_init_script(shell), end="")
         sys.exit(0)
 
+    elif subcmd == "explain":
+        target_cmd = " ".join(sys.argv[2:]).strip()
+        if not target_cmd:
+            console.print("[yellow]Usage: shx explain <command string>[/yellow]")
+            sys.exit(1)
+
+        flags = explain_local_command(target_cmd)
+        if flags:
+            table = Table(title="[bold blue]Cryptic Flags Identified[/bold blue]", border_style="blue")
+            table.add_column("Flag", style="bold green", width=15)
+            table.add_column("Name", style="cyan", width=25)
+            table.add_column("Meaning", style="white")
+            for f in flags:
+                table.add_row(f.flag, f.name, f.description)
+            console.print(table)
+            console.print()
+
+        settings = Settings.load()
+        try:
+            prov = get_provider(model=settings.model, api_keys=settings.api_keys, api_bases=settings.api_bases)
+            prompt = f"Explain the following shell command concisely, breaking down each argument and flag:\n```bash\n{target_cmd}\n```"
+            resp = prov.generate(messages=[{"role": "user", "content": prompt}], tools=[])
+            if resp.content:
+                render_markdown(resp.content)
+        except Exception:
+            pass
+        sys.exit(0)
+
+    elif subcmd == "info":
+        settings = Settings.load()
+        table = Table(title="[bold cyan]shx Environment & System Context[/bold cyan]", border_style="cyan")
+        table.add_column("Property", style="bold green", width=24)
+        table.add_column("Detected Value", style="white")
+        table.add_row("Operating System", f"{platform.system()} ({platform.release()})")
+        table.add_row("Architecture", platform.machine())
+        table.add_row("Current Shell", os.environ.get("SHELL", "zsh"))
+        table.add_row("Working Directory", str(Path.cwd()))
+        table.add_row("Active LLM Model", settings.model)
+        has_gemini = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or settings.api_keys.get("gemini"))
+        has_groq = bool(os.getenv("GROQ_API_KEY") or settings.api_keys.get("groq"))
+        has_claude = bool(os.getenv("ANTHROPIC_API_KEY") or settings.api_keys.get("anthropic"))
+        has_openai = bool(os.getenv("OPENAI_API_KEY") or settings.api_keys.get("openai"))
+        table.add_row("Gemini API Key", "[green]Configured[/green]" if has_gemini else "[dim]Not set[/dim]")
+        table.add_row("Groq API Key", "[green]Configured[/green]" if has_groq else "[dim]Not set[/dim]")
+        table.add_row("Anthropic API Key", "[green]Configured[/green]" if has_claude else "[dim]Not set[/dim]")
+        table.add_row("OpenAI API Key", "[green]Configured[/green]" if has_openai else "[dim]Not set[/dim]")
+        console.print(table)
+        sys.exit(0)
+
+
+def main() -> None:
+    _handle_subcommands()
+
     parser = argparse.ArgumentParser(
-        prog="agn",
-        description="agn (Agentic-SHX): Autonomous Terminal Coding Agent"
+        prog="shx",
+        description="shx: Autonomous Terminal Coding Agent & Shell Assistant"
     )
     parser.add_argument(
         "prompt_args",
         nargs="*",
-        help="Direct natural language instruction to execute (e.g. agn 'open activity monitor')."
+        help="Direct natural language instruction to execute (e.g. shx 'navigate into CodeForces')."
     )
     parser.add_argument(
         "-p", "--prompt",
@@ -60,7 +150,7 @@ alias agn="command agn"
     parser.add_argument(
         "-m", "--model",
         type=str,
-        help="Override active LLM model (e.g. gemini/gemini-2.5-flash, claude-3-7-sonnet, groq/llama-3.3-70b-versatile, gpt-4o, ollama/qwen2.5-coder)."
+        help="Override active LLM model (e.g. gemini/gemini-3.8-flash, claude-3-7-sonnet, groq/llama-3.3-70b-versatile, gpt-4o, ollama/qwen2.5-coder)."
     )
     parser.add_argument(
         "-r", "--resume",
@@ -193,10 +283,10 @@ alias agn="command agn"
         on_request_approval=request_tool_approval,
     )
 
-    # Non-interactive / direct execution mode
-    target_prompt = args.prompt or (" ".join(args.prompt_args).strip() if args.prompt_args else None)
-    if target_prompt:
-        res = loop.step(target_prompt)
+    # Handle direct prompt argument or -p flag
+    direct_query = args.prompt or (" ".join(args.prompt_args).strip() if args.prompt_args else None)
+    if direct_query:
+        res = loop.step(direct_query)
         console.print()
         sys.exit(0)
 

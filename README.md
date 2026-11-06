@@ -26,13 +26,17 @@
   - Records every turn, thought token, tool invocation, and observation into `transcript.jsonl`.
   - Resume any past conversation seamlessly: `shx -r` or `shx -r <session_id>`.
 - **Multi-Provider LLM Engine**:
-  - **Google Gemini**: Native streaming and tool-calling for `gemini-2.5-flash`, `gemini-2.5-pro`, and `gemini-2.0-flash`.
+  - **Google Gemini**: Native streaming and tool-calling for `gemini-3.8-flash` (default), `gemini-2.5-flash`, and `gemini-2.5-pro`.
   - **Anthropic Claude**: Full streaming tool use for `claude-3-7-sonnet`, `claude-3-5-sonnet`, and `haiku`.
   - **Groq**: Ultra-fast inference with `groq/llama-3.3-70b-versatile`, `groq/llama-3.1-8b-instant`, and `groq/deepseek-r1-distill-llama-70b`.
   - **OpenAI & Compatible**: Supports `gpt-4o`, `o3-mini`, `openrouter/*`, and local models via `ollama/*`.
+- **Shell Integration & Directory Navigation**:
+  - Automatically alters the parent shell's working directory (`cd`) and environment (`export`) via `SHX_CMD_FILE` handoff.
+  - One-click terminal configuration with `shx setup` or `eval "$(shx init zsh)"`.
+  - Offline cryptic flags database and command explainer (`shx explain "<cmd>"` and `/explain`).
 - **Terminal UI (TUI)**:
   - Antigravity visual banners, step counters (`[Step 1/30]`), live thought streams, syntax-highlighted diffs, and execution status cards.
-  - Slash commands: `/goal`, `/plan`, `/tasks`, `/artifacts`, `/skills`, `/diff`, `/compact`, `/resume`, `/model`, `/clear`.
+  - Slash commands: `/goal`, `/plan`, `/explain`, `/tasks`, `/artifacts`, `/skills`, `/diff`, `/compact`, `/resume`, `/model`, `/clear`.
 
 ---
 
@@ -142,6 +146,7 @@ shx -r c7f91a2b
 |---|---|
 | `/goal <task>` | Run a long-running, thorough autonomous goal without stopping |
 | `/plan` | Request agent to draft an implementation plan artifact |
+| `/explain <cmd>` | Break down cryptic flags and explain a shell command |
 | `/tasks` | List running background processes, watchers, and servers |
 | `/artifacts` | List and review created markdown documents |
 | `/skills` | Browse specialized skills loaded from `.shx/skills/` |

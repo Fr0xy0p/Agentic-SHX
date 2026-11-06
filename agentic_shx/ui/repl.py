@@ -23,6 +23,7 @@ SLASH_COMMANDS = [
     "/help",
     "/goal",
     "/plan",
+    "/explain",
     "/tasks",
     "/artifacts",
     "/skills",
@@ -65,6 +66,7 @@ def handle_slash_command(
 [bold cyan]Antigravity Slash Commands:[/bold cyan]
   [green]/goal <task>[/green]        Run a long-running, thorough autonomous goal without stopping
   [green]/plan[/green]               Direct agent to draft a multi-phase implementation artifact plan
+  [green]/explain <cmd>[/green]      Break down cryptic flags and explain a shell command
   [green]/tasks[/green]              Inspect running background processes and daemon servers
   [green]/artifacts[/green]          List all structured markdown artifacts in this session
   [green]/skills[/green]             Browse specialized skills discovered in workspace
@@ -77,6 +79,27 @@ def handle_slash_command(
   [green]/tools[/green]              Inspect all available tools and parameter signatures
   [green]/exit[/green] or [green]/quit[/green]      Exit session
 """)
+
+    elif cmd == "/explain":
+        if not arg:
+            console.print("[yellow]Usage: /explain <command to explain>[/yellow]")
+        else:
+            from agentic_shx.explainer import explain_local_command
+            from rich.table import Table
+            local_flags = explain_local_command(arg)
+            if local_flags:
+                table = Table(title="[bold blue]Cryptic Flags Identified[/bold blue]", border_style="blue")
+                table.add_column("Flag", style="bold green", width=15)
+                table.add_column("Name", style="cyan", width=22)
+                table.add_column("Meaning", style="white")
+                for lf in local_flags:
+                    table.add_row(lf.flag, lf.name, lf.description)
+                console.print(table)
+                console.print()
+            explain_prompt = f"Explain the following shell command concisely, breaking down each argument and flag:\n```bash\n{arg}\n```"
+            final_resp = loop.step(explain_prompt)
+            if final_resp and not loop.on_content_chunk:
+                render_markdown(final_resp)
 
     elif cmd == "/goal":
         if not arg:

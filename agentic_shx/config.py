@@ -37,7 +37,7 @@ _load_env_file(Path.home() / ".env")
 @dataclass
 class Settings:
     """User and runtime settings."""
-    model: str = os.getenv("SHX_MODEL", "gemini/gemini-2.5-flash")
+    model: str = os.getenv("SHX_MODEL", "gemini/gemini-3.8-flash")
     temperature: float = 0.2
     max_tokens: int = 4096
     max_steps: int = 30

@@ -1,18 +1,20 @@
-"""Bash and shell execution tool with background task support."""
+"""Bash and shell execution tool with background task support and directory navigation."""
 
 import subprocess
 import os
+from pathlib import Path
 from typing import Dict, Any, Optional
 from agentic_shx.tools.base import BaseTool, ToolResult
 from agentic_shx.tasks.manager import TaskManager
+from agentic_shx.shell_integration import is_shell_state_command, handoff_command_to_shell, copy_to_clipboard
 
 class BashTool(BaseTool):
     """Executes shell commands with timeout, background execution, and output capture."""
 
     name = "bash"
     description = (
-        "Run a shell command in the terminal. Supports synchronous execution as well as "
-        "backgrounding long-running tasks and servers via wait_ms or is_daemon."
+        "Run a shell command in the terminal. Supports synchronous execution, directory navigation (cd), "
+        "and backgrounding long-running tasks and servers via wait_ms or is_daemon."
     )
     parameters = {
         "type": "object",
@@ -67,6 +69,11 @@ class BashTool(BaseTool):
         actual_wait_ms = wait_ms or WaitMsBeforeAsync
         actual_is_daemon = is_daemon or IsDaemon
 
+        # Handoff to parent shell if it alters shell state (e.g. cd, export, source)
+        if is_shell_state_command(cmd):
+            handoff_command_to_shell(cmd)
+            copy_to_clipboard(cmd)
+
         # If TaskManager is available and either backgrounding parameter is requested
         if self.task_manager and (actual_is_daemon or actual_wait_ms is not None):
             ms = actual_wait_ms if actual_wait_ms is not None else 5000
@@ -93,8 +100,12 @@ class BashTool(BaseTool):
         # Standard synchronous execution
         actual_timeout = timeout or self.default_timeout
         try:
+            # If the command changes directory, track the new working directory
+            has_cd = any(part in cmd for part in ("cd ", "cd\t", "cd\n", "pushd", "popd")) or cmd.strip() == "cd"
+            exec_cmd = f"{cmd}\n__SHX_PWD__=$PWD\necho '__SHX_PWD__:'$__SHX_PWD__" if has_cd else cmd
+
             process = subprocess.run(
-                cmd,
+                exec_cmd,
                 shell=True,
                 cwd=self.cwd,
                 capture_output=True,
@@ -106,6 +117,14 @@ class BashTool(BaseTool):
             stdout = process.stdout
             stderr = process.stderr
             exit_code = process.returncode
+
+            # Extract tracked directory if present
+            if has_cd and exit_code == 0 and "__SHX_PWD__:" in stdout:
+                parts = stdout.split("__SHX_PWD__:")
+                stdout = parts[0]
+                new_pwd = parts[-1].strip().splitlines()[0].strip()
+                if os.path.isdir(new_pwd):
+                    self.cwd = new_pwd
 
             combined = ""
             if stdout:
@@ -129,6 +148,7 @@ class BashTool(BaseTool):
             metadata = {
                 "exit_code": exit_code,
                 "command": cmd,
+                "cwd": self.cwd,
                 "truncated": truncated
             }
 
