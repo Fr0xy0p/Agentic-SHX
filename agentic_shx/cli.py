@@ -32,25 +32,25 @@ from agentic_shx.ui.approval import request_tool_approval
 from agentic_shx.ui.repl import start_repl
 
 def main() -> None:
-    # Handle 'shx init <shell>' for shell integration (e.g. in ~/.zshrc or ~/.bashrc)
+    # Handle 'agn init <shell>' for shell integration (e.g. in ~/.zshrc or ~/.bashrc)
     if len(sys.argv) >= 2 and sys.argv[1] == "init":
         shell = sys.argv[2] if len(sys.argv) > 2 else "zsh"
         local_bin = Path.home() / ".local" / "bin"
         if shell in ("zsh", "bash"):
             print(f"""# Agentic-SHX Shell Integration for {shell}
 export PATH="{local_bin}:$PATH"
-alias shx="command shx"
+alias agn="command agn"
 """)
         sys.exit(0)
 
     parser = argparse.ArgumentParser(
-        prog="shx",
-        description="Agentic-SHX: Autonomous Terminal Coding Agent"
+        prog="agn",
+        description="agn (Agentic-SHX): Autonomous Terminal Coding Agent"
     )
     parser.add_argument(
         "prompt_args",
         nargs="*",
-        help="Direct natural language instruction to execute (e.g. shx 'show me the logbook')."
+        help="Direct natural language instruction to execute (e.g. agn 'open activity monitor')."
     )
     parser.add_argument(
         "-p", "--prompt",

@@ -26,7 +26,7 @@ dev = [
 ]
 
 [project.scripts]
-shx = "agentic_shx.cli:main"
+agn = "agentic_shx.cli:main"
 agentic-shx = "agentic_shx.cli:main"
 
 [tool.setuptools.packages.find]
