@@ -77,3 +77,4 @@ def test_explain_local_command():
     assert "Gzip" in flag_names
     assert "Verbose" in flag_names
     assert "File" in flag_names
+

@@ -202,3 +202,4 @@ def install_shell_integration(shell_name: Optional[str] = None) -> Tuple[bool, s
         return True, f"Successfully installed shell integration into {rc_path}. Run 'source {rc_path}' to activate."
     except Exception as e:
         return False, f"Could not write to {rc_path}: {e}"
+

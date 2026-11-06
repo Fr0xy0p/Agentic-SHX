@@ -212,3 +212,4 @@ def explain_local_command(command: str) -> List[FlagInfo]:
                             results.append(FlagInfo(flag=f"{current_cmd} {single_flag}", name=name, description=desc))
 
     return results
+
